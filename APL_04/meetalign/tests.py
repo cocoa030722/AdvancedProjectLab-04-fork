@@ -682,7 +682,9 @@ class PipelineTests(BaseTestCase):
     def test_g5_4_api_key_from_env_only(self):
         gitignore = (REPO_DIR / ".gitignore").read_text(encoding="utf-8").splitlines()
         self.assertIn(".env", gitignore)
-        result = subprocess.run(["git", "grep", "-I", "-n", "sk-" + "ant"], cwd=REPO_DIR,
+        # 문서의 설명 문구가 아니라 실제 키 형태(sk-ant- 뒤에 긴 토큰)만 찾는다
+        key_pattern = "sk-" + "ant-[A-Za-z0-9_-]{20,}"
+        result = subprocess.run(["git", "grep", "-I", "-n", "-E", key_pattern], cwd=REPO_DIR,
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 1, result.stdout)
         with mock.patch.dict(os.environ):
@@ -1317,3 +1319,38 @@ class TestQualityTests(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.meeting.status, Meeting.Status.DONE)
         self.assertIn("mock", (APP_DIR / "tests.py").read_text(encoding="utf-8"))
+
+
+# ===================================================================
+# 데모 계정 표시
+# ===================================================================
+
+class DemoAccountTests(BaseTestCase):
+    def test_index_shows_demo_accounts_only_in_debug(self):
+        account = settings.DEMO_ACCOUNTS[0]
+        with override_settings(DEBUG=True):
+            response = self.client.get(reverse("index"))
+            self.assertContains(response, account["username"])
+            self.assertContains(response, account["password"])
+            self.login(self.member)
+            self.assertContains(self.client.get(reverse("index")), account["password"])
+        with override_settings(DEBUG=False):
+            response = self.client.get(reverse("index"))
+            self.assertNotContains(response, account["password"])
+            self.assertNotContains(response, "데모 계정")
+
+    def test_seed_demo_creates_login_able_accounts(self):
+        from io import StringIO
+        from django.core.management import call_command
+        call_command("seed_demo", stdout=StringIO())
+        call_command("seed_demo", stdout=StringIO())  # 두 번 실행해도 안전
+        for account in settings.DEMO_ACCOUNTS:
+            self.assertEqual(User.objects.filter(username=account["username"]).count(), 1)
+            self.client.logout()
+            response = self.client.post(reverse("login"), {"username": account["username"],
+                                                           "password": account["password"]})
+            self.assertRedirects(response, reverse("index"))
+            membership = TeamMembership.objects.get(user__username=account["username"], team__name="데모 팀")
+            self.assertEqual(membership.role, account["role"])
+        self.assertEqual(Team.objects.filter(name="데모 팀").count(), 1)
+        self.assertEqual(Project.objects.filter(name="데모 프로젝트").count(), 1)

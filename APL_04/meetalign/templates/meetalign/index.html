@@ -12,4 +12,13 @@
 <p>회의 녹음을 올리면 통일 회의록과 요약, 이해도 검증 문항을 만들어 줍니다.</p>
 <p><a href="{% url 'signup' %}">회원가입</a> | <a href="{% url 'login' %}">로그인</a></p>
 {% endif %}
+{% if demo_accounts %}
+<h2>데모 계정 (개발 모드에서만 표시)</h2>
+<p>없으면 <code>python manage.py seed_demo</code>로 만든다.</p>
+<table border="1" cellpadding="4">
+<tr><th>아이디</th><th>비밀번호</th><th>역할</th></tr>
+{% for a in demo_accounts %}<tr><td>{{ a.username }}</td><td>{{ a.password }}</td><td>{{ a.role }}</td></tr>
+{% endfor %}
+</table>
+{% endif %}
 {% endblock %}

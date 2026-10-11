@@ -211,3 +211,12 @@ MEETALIGN_RUN_PIPELINE_SYNC = False          # 테스트에서 True로 덮어써
 PROCESSING_TIMEOUT_SECONDS = int(os.environ.get("PROCESSING_TIMEOUT_SECONDS", 1800))
 CONTEXT_CHAR_LIMIT = int(os.environ.get("CONTEXT_CHAR_LIMIT", 30000))
 CONTEXT_WARN_RATIO = float(os.environ.get("CONTEXT_WARN_RATIO", 0.8))
+
+
+# MeetAlign: 데모 계정. `python manage.py seed_demo`로 생성되며 DEBUG=True일 때만 index에 표시된다.
+# 비밀번호는 DB에 해시로만 저장되므로 실제 계정의 비밀번호는 표시할 수 없다.
+
+DEMO_ACCOUNTS = [
+    {"username": "demo_leader", "password": "demo-leader-pass-1", "role": "leader"},
+    {"username": "demo_member", "password": "demo-member-pass-1", "role": "member"},
+]

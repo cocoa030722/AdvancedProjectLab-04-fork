@@ -26,7 +26,9 @@ CHAT_HISTORY_LIMIT = 20
 
 def index(request):
     teams = request.user.teams.all() if request.user.is_authenticated else []
-    return render(request, "meetalign/index.html", {"teams": teams})
+    # 데모 계정 목록은 개발 모드에서만 노출한다
+    demo_accounts = settings.DEMO_ACCOUNTS if settings.DEBUG else []
+    return render(request, "meetalign/index.html", {"teams": teams, "demo_accounts": demo_accounts})
 
 
 def signup(request):
