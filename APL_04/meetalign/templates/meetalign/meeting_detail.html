@@ -5,7 +5,7 @@
 {% endblock %}
 {% block content %}
 <h1>{{ meeting.title }}</h1>
-<a href="{% url 'meeting_list' meeting.team_id %}">회의 목록으로 돌아가기</a>
+<a href="{% url 'meeting_list' meeting.project.team_id %}">회의 목록으로 돌아가기</a>
 <form method="post" enctype="multipart/form-data">{% csrf_token %}
 <p>회의 녹음: <input type="file" name="recording" accept="audio/*"></p>
 <button name="action" value="submit">제출</button>

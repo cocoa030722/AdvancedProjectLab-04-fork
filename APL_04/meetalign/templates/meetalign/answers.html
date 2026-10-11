@@ -7,7 +7,7 @@
 <form method="post">{% csrf_token %}
 <p>Q. {{ q.text }}</p>
 <input type="hidden" name="question_id" value="{{ q.id }}">
-<input name="answer" value="{{ q.answer }}"><button>답변 저장</button>
+<input name="answer" value="{{ q.answer.text }}"><button>답변 저장</button>
 </form>
 {% empty %}<p>질문이 없습니다.</p>{% endfor %}
 <p><a href="{% url 'summary' meeting.id %}">회의 요약</a> | <a href="{% url 'understanding' meeting.id %}">이해도 검증</a></p>

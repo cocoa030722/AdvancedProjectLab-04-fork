@@ -4,7 +4,7 @@
 <h1>{{ meeting.title }} 익명 질문함</h1>
 <p><a href="{% url 'meeting_detail' meeting.id %}">회의로 돌아가기</a></p>
 <ul>
-{% for q in questions %}<li>{{ q.text }}{% if q.answer %} → 답변: {{ q.answer }}{% endif %}</li>
+{% for q in questions %}<li>{{ q.text }}{% if q.answer %} → 답변: {{ q.answer.text }}{% endif %}</li>
 {% empty %}<li>질문이 없습니다.</li>{% endfor %}
 </ul>
 <p><a href="{% url 'answers' meeting.id %}">질문에 답변하기</a></p>

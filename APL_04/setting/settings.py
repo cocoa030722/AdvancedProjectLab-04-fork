@@ -129,3 +129,8 @@ MAILERS = {
 
 
 LOGOUT_REDIRECT_URL = 'index'
+
+AUTH_USER_MODEL = 'meetalign.User'
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
