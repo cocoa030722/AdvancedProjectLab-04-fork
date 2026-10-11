@@ -10,22 +10,44 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _load_dotenv(path):
+    """python-dotenv 없이 .env의 KEY=VALUE를 환경변수로 읽는다(이미 있는 값은 유지)."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_dotenv(BASE_DIR / ".env")
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o$=2*@##p51g3&)(t*5(9fgh&0gtvik6+m@m42u=0#cadr5ru0'
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    'django-insecure-o$=2*@##p51g3&)(t*5(9fgh&0gtvik6+m@m42u=0#cadr5ru0',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h]
 
 
 # Application definition
@@ -72,13 +94,26 @@ WSGI_APPLICATION = 'setting.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+# 개발은 SQLite, 배포 시 DB_ENGINE=postgresql 환경변수로 PostgreSQL 전환
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get("DB_ENGINE", "sqlite") == "postgresql":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get("DB_NAME", "meetalign"),
+            'USER': os.environ.get("DB_USER", ""),
+            'PASSWORD': os.environ.get("DB_PASSWORD", ""),
+            'HOST': os.environ.get("DB_HOST", "localhost"),
+            'PORT': os.environ.get("DB_PORT", "5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -99,13 +134,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# 테스트에서는 비밀번호 해시 비용을 줄인다(검증기와는 무관)
+if "test" in sys.argv:
+    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -128,9 +167,47 @@ MAILERS = {
 }
 
 
-LOGOUT_REDIRECT_URL = 'index'
+# Auth
 
 AUTH_USER_MODEL = 'meetalign.User'
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'index'
+
+
+# Media (녹음 파일). URL로 직접 서빙하지 않고 소속 검사를 거친 뷰로만 내려준다.
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# MeetAlign: 녹음 제한
+
+MAX_RECORDING_BYTES = int(os.environ.get("MAX_RECORDING_BYTES", 100 * 1024 * 1024))
+MAX_RECORDING_SECONDS = int(os.environ.get("MAX_RECORDING_SECONDS", int(1800 * 1.1)))
+ALLOWED_RECORDING_EXTENSIONS = ('.webm', '.mp3')
+
+
+# MeetAlign: STT / LLM
+
+STT_BACKEND = os.environ.get("STT_BACKEND", "meetalign.stt.LocalSTT")
+LOCAL_STT_MODEL = os.environ.get("LOCAL_STT_MODEL", "small")
+
+# 용도별 클로드 모델. 모델 ID는 이 파일에서만 정한다.
+CLAUDE_MODELS = {
+    'minutes': os.environ.get("CLAUDE_MODEL_MINUTES", "claude-sonnet-5-5"),
+    'summary': os.environ.get("CLAUDE_MODEL_SUMMARY", "claude-sonnet-5-5"),
+    'chat': os.environ.get("CLAUDE_MODEL_CHAT", "claude-sonnet-5-5"),
+    'quiz': os.environ.get("CLAUDE_MODEL_QUIZ", "claude-sonnet-5-5"),
+    'answer_draft': os.environ.get("CLAUDE_MODEL_ANSWER_DRAFT", "claude-sonnet-5-5"),
+}
+
+QUIZ_MAX_RETRIES = int(os.environ.get("QUIZ_MAX_RETRIES", 2))
+
+
+# MeetAlign: 처리 파이프라인과 맥락
+
+MEETALIGN_RUN_PIPELINE_SYNC = False          # 테스트에서 True로 덮어써 동기 실행
+PROCESSING_TIMEOUT_SECONDS = int(os.environ.get("PROCESSING_TIMEOUT_SECONDS", 1800))
+CONTEXT_CHAR_LIMIT = int(os.environ.get("CONTEXT_CHAR_LIMIT", 30000))
+CONTEXT_WARN_RATIO = float(os.environ.get("CONTEXT_WARN_RATIO", 0.8))

@@ -1,0 +1,9 @@
+{% extends "meetalign/base.html" %}
+{% block content %}
+<h1>{{ team.name }} 프로젝트 생성</h1>
+<p><a href="{% url 'project_list' team.id %}">팀으로 돌아가기</a></p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post">{% csrf_token %}
+<input name="name" placeholder="프로젝트 이름"><button>생성</button>
+</form>
+{% endblock %}

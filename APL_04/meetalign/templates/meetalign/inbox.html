@@ -1,11 +1,35 @@
 {% extends "meetalign/base.html" %}
-{% block note %}<li>팀원 누구나 익명 질문을 볼 수 있고, 답변은 3.5 화면에서 한다.</li>{% endblock %}
 {% block content %}
 <h1>{{ meeting.title }} 익명 질문함</h1>
-<p><a href="{% url 'meeting_detail' meeting.id %}">회의로 돌아가기</a></p>
-<ul>
-{% for q in questions %}<li>{{ q.text }}{% if q.answer %} → 답변: {{ q.answer.text }}{% endif %}</li>
+<p><a href="{% url 'meeting_detail' team.id project.id meeting.id %}">회의로 돌아가기</a></p>
+<ul id="question-list">
+{% for q in questions %}<li>{{ q.text }}{% if q.answered %} (답변 완료){% endif %}</li>
 {% empty %}<li>질문이 없습니다.</li>{% endfor %}
 </ul>
-<p><a href="{% url 'answers' meeting.id %}">질문에 답변하기</a></p>
+{% if is_leader %}<p><a href="{% url 'answers' team.id project.id meeting.id %}">질문에 답변하기</a></p>{% endif %}
+<script>
+(function () {
+  function poll() {
+    fetch("{% url 'inbox_feed' team.id project.id meeting.id %}", { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var list = document.getElementById("question-list");
+        list.innerHTML = "";
+        if (!d.questions.length) {
+          var empty = document.createElement("li");
+          empty.textContent = "질문이 없습니다.";
+          list.appendChild(empty);
+        }
+        d.questions.forEach(function (q) {
+          var li = document.createElement("li");
+          li.textContent = q.text + (q.answered ? " (답변 완료)" : "");
+          list.appendChild(li);
+        });
+        setTimeout(poll, 5000);
+      })
+      .catch(function () { setTimeout(poll, 10000); });
+  }
+  setTimeout(poll, 5000);
+})();
+</script>
 {% endblock %}

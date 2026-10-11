@@ -1,11 +1,26 @@
 {% extends "meetalign/base.html" %}
-{% block note %}<li>개별 이해도 검증: 고정된 가짜 문항이며 채점/저장하지 않는다.</li>{% endblock %}
 {% block content %}
 <h1>{{ meeting.title }} 이해도 검증</h1>
-<p><a href="{% url 'meeting_detail' meeting.id %}">회의로 돌아가기</a></p>
-<form>
-<p>1. 이번 회의의 핵심 결정 사항은? <input name="q1"></p>
-<p>2. 내가 맡은 다음 할 일은? <input name="q2"></p>
-<button type="button">제출 (동작 안 함)</button>
+<p><a href="{% url 'meeting_detail' team.id project.id meeting.id %}">회의로 돌아가기</a></p>
+{% if not comprehension %}
+<p>아직 문항이 없습니다. 회의록이 생성되면 문항이 만들어집니다.</p>
+{% else %}
+{% if result %}
+<h2>결과: {{ result.score }} / {{ total }}</h2>
+<ol>{% for r in result_items %}<li>{{ r.text }} - {% if r.is_right %}맞음{% else %}틀림{% endif %}</li>{% endfor %}</ol>
+{% endif %}
+<form method="post">{% csrf_token %}
+{% for q in questions %}
+<fieldset><legend>{{ forloop.counter }}. {{ q.text }}</legend>
+{% for c in q.choices %}<label><input type="radio" name="q_{{ q.id }}" value="{{ forloop.counter0 }}"> {{ c }}</label><br>{% endfor %}
+</fieldset>
+{% endfor %}
+<button>제출</button>
 </form>
+<h2>내 응시 기록</h2>
+<ul>
+{% for a in attempts %}<li>{{ a.created_at|date:"Y-m-d H:i" }} - {{ a.score }} / {{ total }}</li>
+{% empty %}<li>아직 응시하지 않았습니다.</li>{% endfor %}
+</ul>
+{% endif %}
 {% endblock %}

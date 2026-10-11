@@ -1,11 +1,16 @@
 {% extends "meetalign/base.html" %}
-{% block note %}<li>팀은 이름으로 생성/참여한다. 참여는 초대/승인 없이 이름만 알면 가능 (목업).</li>{% endblock %}
 {% block content %}
 <h1>팀 생성/참여</h1>
-{% if error %}<p>{{ error }}</p>{% endif %}
+<p><a href="{% url 'index' %}">처음으로</a></p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<h2>팀 생성</h2>
 <form method="post">{% csrf_token %}
-<input name="name" placeholder="팀 이름">
-<button name="action" value="create">팀 생성</button>
-<button name="action" value="join">팀 참여</button>
+<input type="hidden" name="action" value="create">
+<input name="name" placeholder="팀 이름"><button>팀 생성</button>
+</form>
+<h2>초대 코드로 참여</h2>
+<form method="post">{% csrf_token %}
+<input type="hidden" name="action" value="join">
+<input name="invite_code" placeholder="초대 코드"><button>팀 참여</button>
 </form>
 {% endblock %}

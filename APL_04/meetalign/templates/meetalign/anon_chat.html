@@ -1,0 +1,10 @@
+{% extends "meetalign/base.html" %}
+{% block content %}
+<h1>{{ meeting.title }} 익명 질문</h1>
+<p><a href="{% url 'meeting_detail' team.id project.id meeting.id %}">회의로 돌아가기</a>
+ | <a href="{% url 'chat' team.id project.id meeting.id %}">LLM 대화로 전환</a></p>
+{% if sent %}<p>익명 질문이 전송되었습니다. 답변은 <a href="{% url 'my_questions' team.id project.id meeting.id %}">내 질문과 답변</a>에서 확인할 수 있습니다.</p>{% endif %}
+<form method="post">{% csrf_token %}
+<input name="text" placeholder="익명 질문" size="60"><button>보내기</button>
+</form>
+{% endblock %}

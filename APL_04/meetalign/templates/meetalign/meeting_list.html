@@ -1,10 +1,10 @@
 {% extends "meetalign/base.html" %}
-{% block note %}<li>회의방은 팀 단위이며, 회의를 선택해 입장한다.</li>{% endblock %}
 {% block content %}
-<h1>{{ team.name }} 회의 목록</h1>
-<p><a href="{% url 'meeting_create' team.id %}">회의 생성</a></p>
+<h1>{{ project.name }} 회의 목록</h1>
+<p><a href="{% url 'project_list' team.id %}">팀으로 돌아가기</a></p>
+{% if is_leader %}<p><a href="{% url 'meeting_create' team.id project.id %}">회의 생성</a></p>{% endif %}
 <ul>
-{% for m in meetings %}<li><a href="{% url 'meeting_detail' m.id %}">{{ m.title }}</a>{% if m.status == 'done' %} (종료){% endif %}</li>
+{% for m in meetings %}<li><a href="{% url 'meeting_detail' team.id project.id m.id %}">{{ m.title }}</a> ({{ m.get_status_display }})</li>
 {% empty %}<li>회의가 없습니다.</li>{% endfor %}
 </ul>
 {% endblock %}

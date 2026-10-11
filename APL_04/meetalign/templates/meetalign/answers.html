@@ -1,14 +1,14 @@
 {% extends "meetalign/base.html" %}
-{% block note %}<li>회의 종료 후 이동하는 화면. 생성된 익명 질문에 답변을 직접 작성해 저장한다 (LLM 초안 없음).</li>{% endblock %}
 {% block content %}
 <h1>{{ meeting.title }} 질문 답변</h1>
-<p><a href="{% url 'meeting_detail' meeting.id %}">회의로 돌아가기</a></p>
+<p><a href="{% url 'meeting_detail' team.id project.id meeting.id %}">회의로 돌아가기</a></p>
+<p>답변은 질문한 사람에게만 보입니다. 비어 있는 칸에는 LLM 초안이 채워집니다.</p>
 {% for q in questions %}
 <form method="post">{% csrf_token %}
 <p>Q. {{ q.text }}</p>
 <input type="hidden" name="question_id" value="{{ q.id }}">
-<input name="answer" value="{{ q.answer.text }}"><button>답변 저장</button>
+<textarea name="answer" rows="4" cols="70">{% if q.answer %}{{ q.answer.text }}{% else %}{{ q.draft }}{% endif %}</textarea>
+<p><button>답변 저장</button>{% if q.answer %} (저장됨){% elif q.draft %} (LLM 초안){% endif %}</p>
 </form>
 {% empty %}<p>질문이 없습니다.</p>{% endfor %}
-<p><a href="{% url 'summary' meeting.id %}">회의 요약</a> | <a href="{% url 'understanding' meeting.id %}">이해도 검증</a></p>
 {% endblock %}

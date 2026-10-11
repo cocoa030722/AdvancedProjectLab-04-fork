@@ -1,0 +1,10 @@
+{% extends "meetalign/base.html" %}
+{% block content %}
+<h1>{{ meeting.title }} 내 질문과 답변</h1>
+<p><a href="{% url 'meeting_detail' team.id project.id meeting.id %}">회의로 돌아가기</a>
+ | <a href="{% url 'anon_chat' team.id project.id meeting.id %}">질문하기</a></p>
+<ul>
+{% for q in questions %}<li>Q. {{ q.text }}<br>{% if q.answer %}A. {{ q.answer.text|linebreaksbr }}{% else %}(아직 답변이 없습니다){% endif %}</li>
+{% empty %}<li>작성한 질문이 없습니다.</li>{% endfor %}
+</ul>
+{% endblock %}

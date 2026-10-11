@@ -1,12 +1,22 @@
 <!doctype html>
 <html lang="ko">
-<head><meta charset="utf-8"><title>{% block title %}MeetAlign{% endblock %}</title></head>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}MeetAlign{% endblock %}</title>
+<style>
+body { font-family: sans-serif; margin: 16px; max-width: 900px; }
+.error { color: #b00020; }
+.warning { color: #8a5a00; background: #fff4d6; padding: 8px; }
+pre { white-space: pre-wrap; }
+</style>
+</head>
 <body>
-<p><a href="{% url 'index' %}">[index]</a></p>
-<div style="border:1px solid #000">
-<b>설계 결정</b>
-<ul>{% block note %}{% endblock %}</ul>
-</div>
+<p><a href="{% url 'index' %}">[MeetAlign]</a>
+{% if user.is_authenticated %} | {{ user.username }} 님
+<form method="post" action="{% url 'logout' %}" style="display:inline">{% csrf_token %}<button>로그아웃</button></form>
+{% else %} | <a href="{% url 'login' %}">로그인</a> | <a href="{% url 'signup' %}">회원가입</a>{% endif %}
+</p>
 <hr>
 {% block content %}{% endblock %}
 </body>

@@ -1,0 +1,14 @@
+{% extends "meetalign/base.html" %}
+{% block content %}
+<h1>{{ team.name }}</h1>
+<p><a href="{% url 'index' %}">내 팀 목록으로 돌아가기</a></p>
+<p>초대 코드: <code>{{ team.invite_code }}</code>
+{% if is_leader %}<form method="post" action="{% url 'invite_regenerate' team.id %}" style="display:inline">{% csrf_token %}<button>재발급</button></form>{% endif %}
+</p>
+<h2>프로젝트</h2>
+{% if is_leader %}<p><a href="{% url 'project_create' team.id %}">프로젝트 생성</a></p>{% endif %}
+<ul>
+{% for p in projects %}<li><a href="{% url 'meeting_list' team.id p.id %}">{{ p.name }}</a></li>
+{% empty %}<li>프로젝트가 없습니다.</li>{% endfor %}
+</ul>
+{% endblock %}
